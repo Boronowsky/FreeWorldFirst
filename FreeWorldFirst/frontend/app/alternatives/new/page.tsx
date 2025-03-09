@@ -1,3 +1,4 @@
+// app/alternatives/new/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/toast";
@@ -45,23 +46,23 @@ export default function NewAlternativePage() {
     return null;
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCategoryChange = (value: string) => {
+  const handleCategoryChange = (value) => {
     setFormData(prev => ({ ...prev, category: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
       // Validierung
       const requiredFields = ['title', 'replaces', 'description', 'reasons', 'benefits', 'category'];
-      const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+      const missingFields = requiredFields.filter(field => !formData[field]);
       
       if (missingFields.length > 0) {
         throw new Error(`Bitte füllen Sie alle Pflichtfelder aus: ${missingFields.join(', ')}`);
@@ -197,18 +198,12 @@ export default function NewAlternativePage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Kategorie</label>
-                <Select value={formData.category} onValueChange={handleCategoryChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Wählen Sie eine Kategorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Select
+                  value={formData.category}
+                  onValueChange={handleCategoryChange}
+                  placeholder="Wählen Sie eine Kategorie"
+                  options={categories}
+                />
                 <p className="text-xs text-gray-500">
                   Die Kategorie der Alternative
                 </p>

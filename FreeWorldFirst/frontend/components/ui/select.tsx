@@ -1,49 +1,98 @@
+// components/ui/select.tsx
 "use client";
 
-import * as React from "react";
+import { useEffect, useRef, useState } from "react";
+import useOutsideClick from "../../lib/hooks/useOutsideClick";
 
-export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {}
+interface DropdownItem {
+  id: string;
+  name: string;
+}
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, children, ...props }, ref) => {
-    return (
-      <select
-        className={`flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-        ref={ref}
-        {...props}
+interface SelectProps {
+  value: string;
+  onValueChange: (value: string) => void;
+  placeholder?: string;
+  options: string[];
+  className?: string;
+}
+
+export function Select({
+  value,
+  onValueChange,
+  placeholder = "Auswählen...",
+  options,
+  className = "",
+}: SelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useOutsideClick({
+    ref: dropdownRef,
+    handler: () => setIsOpen(false),
+  });
+
+  const handleSelect = (option: string) => {
+    onValueChange(option);
+    setIsOpen(false);
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        type="button"
+        className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm focus:outline-none ${className}`}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
       >
-        {children}
-      </select>
-    );
-  }
-);
-
-Select.displayName = "Select";
-
-export const SelectTrigger = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
-  return (
-    <div className={`relative flex h-10 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${className}`} {...props}>
-      {children}
+        <span className={value ? "" : "text-muted-foreground"}>
+          {value || placeholder}
+        </span>
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          className={`h-4 w-4 opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 rounded-md border bg-white shadow-lg">
+          <ul 
+            className="py-1 max-h-60 overflow-auto"
+            role="listbox"
+          >
+            {options.map((option) => (
+              <li
+                key={option}
+                role="option"
+                aria-selected={value === option}
+                className={`px-3 py-2 cursor-pointer hover:bg-blue-50 ${
+                  value === option ? 'bg-blue-100' : ''
+                }`}
+                onClick={() => handleSelect(option)}
+              >
+                {option}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
-};
+}
 
-export const SelectValue = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
-  return <span className={`block truncate ${className}`} {...props} />;
-};
-
-export const SelectContent = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
-  return (
-    <div className={`relative mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white py-1 text-base shadow-lg focus:outline-none sm:text-sm ${className}`} {...props}>
-      {children}
-    </div>
-  );
-};
-
-export const SelectItem = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
-  return (
-    <div className={`relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 hover:bg-blue-50 ${className}`} {...props}>
-      {children}
-    </div>
-  );
-};
+// Export leere Komponenten für Kompatibilität
+export const SelectTrigger = ({ children }) => children;
+export const SelectValue = ({ children }) => children;
+export const SelectContent = ({ children }) => children;
+export const SelectItem = ({ children }) => children;
