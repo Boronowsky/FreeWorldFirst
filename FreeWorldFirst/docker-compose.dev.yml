@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: freeworldfirst
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - freeworldfirst-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/freeworldfirst?schema=public
+      - JWT_SECRET=dev-secret-key
+      - PORT=3001
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma generate && npx prisma migrate dev --name init --skip-seed --skip-generate && npm run start:dev"
+    networks:
+      - freeworldfirst-network
+
+  frontend:
+    build:
+      context: ./frontend
+      target: deps
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    command: npm run dev
+    networks:
+      - freeworldfirst-network
+    depends_on:
+      - backend
+
+networks:
+  freeworldfirst-network:
+
+volumes:
+  postgres-data:

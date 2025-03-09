@@ -1,0 +1,41 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Läuft jeden Sonntag um Mitternacht
+  workflow_dispatch:     # Ermöglicht manuelle Ausführung
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run npm audit (Frontend)
+        working-directory: ./frontend
+        run: npm audit --audit-level=high
+      
+      - name: Run npm audit (Backend)
+        working-directory: ./backend
+        run: npm audit --audit-level=high
+      
+      - name: Run Snyk to check for vulnerabilities (Frontend)
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          args: --severity-threshold=high
+          command: test
+          json: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run Snyk to check for vulnerabilities (Backend)
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          args: --severity-threshold=high --file=./backend/package.json
+          command: test
+          json: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

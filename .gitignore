@@ -1,0 +1,30 @@
+# Node.js
+node_modules/
+npm-debug.log
+
+# Next.js
+.next/
+out/
+
+# NestJS
+dist/
+
+# Umgebungsvariablen
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-volumes/
+
+# IDE und Editor
+.idea/
+.vscode/
+*.swp
+*.swo
